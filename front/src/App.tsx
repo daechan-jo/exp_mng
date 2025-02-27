@@ -29,7 +29,11 @@ const App: React.FC = () => {
       {/* 헤더 */}
       <header className="p-4 border-b border-gray-200 bg-white">
         <h1 className="text-center font-bold">
-          {currentPage === 'dashboard' ? '대시보드' : currentPage === 'register' ? '등록' : '관리'}
+          {currentPage === 'dashboard'
+            ? '대시보드'
+            : currentPage === 'register'
+              ? '전표등록'
+              : '관리'}
         </h1>
       </header>
 
