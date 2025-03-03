@@ -1,4 +1,4 @@
-package com.expmng.back.exception;
+package com.expmng.back.common.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.expmng.back.modules.product.dto;
+package com.expmng.back.modules.product.dto.base;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductExpDto {
+public class ProductExpDTO {
 	private Long productId;
 	private String name;
 	private String code;
