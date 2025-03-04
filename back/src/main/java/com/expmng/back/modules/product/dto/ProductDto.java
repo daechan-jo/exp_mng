@@ -1,6 +1,7 @@
 package com.expmng.back.modules.product.dto;
 
 import com.expmng.back.modules.product.infrastructure.entity.Product;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
@@ -15,19 +16,24 @@ import java.util.stream.Collectors;
 
 public class ProductDto {
 
+	@Schema(description = "제품 생성 요청 DTO")
 	@Data
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class Request {
+		@Schema(description = "제품명", example = "농심)신라면")
 		@NotBlank(message = "제품명은 필수입니다.")
 		private String name;
 
+		@Schema(description = "제품 코드", example = "PROD001")
 		private String code;
 
+		@Schema(description = "제품 가격", example = "1000000")
 		@PositiveOrZero(message = "가격은 0 이상이어야 합니다.")
 		private Integer price;
 
+		@Schema(description = "재고 수량", example = "100")
 		private Integer stock;
 
 		// Entity 변환 메서드
@@ -41,19 +47,34 @@ public class ProductDto {
 		}
 	}
 
+	@Schema(description = "제품 응답 DTO")
 	@Data
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class Response {
+		@Schema(description = "제품 ID", example = "1")
 		private Long id;
+
+		@Schema(description = "제품명", example = "스마트폰 XYZ")
 		private String name;
+
+		@Schema(description = "제품 코드", example = "PROD-001")
 		private String code;
+
+		@Schema(description = "제품 가격", example = "1000000")
 		private Integer price;
+
+		@Schema(description = "재고 수량", example = "100")
 		private Integer stock;
+
+		@Schema(description = "생성 시간")
 		private LocalDateTime createdAt;
+
+		@Schema(description = "최종 수정 시간")
 		private LocalDateTime updatedAt;
 
+		@Schema(description = "재고 이력 목록")
 		@Builder.Default
 		private List<ExpDto.Response> exps = new ArrayList<>();
 
@@ -80,14 +101,22 @@ public class ProductDto {
 		}
 	}
 
+	@Schema(description = "제품 수정 요청 DTO")
 	@Data
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class UpdateRequest {
+		@Schema(description = "제품명", example = "스마트폰 XYZ Pro")
 		private String name;
+
+		@Schema(description = "제품 코드", example = "PROD-002")
 		private String code;
+
+		@Schema(description = "제품 가격", example = "1200000")
 		private Integer price;
+
+		@Schema(description = "재고 수량", example = "50")
 		private Integer stock;
 
 		public void updateEntity(Product product) {
