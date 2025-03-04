@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public class ExpDto {
 
@@ -15,13 +16,15 @@ public class ExpDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class Request {
-		private Integer amount;
+		private Integer stock;
 		private Boolean status;
+		private Date deadline;
 
 		public Exp toEntity() {
 			return Exp.builder()
-				.amount(amount)
+				.stock(stock)
 				.status(status)
+				.deadline(deadline)
 				.build();
 		}
 	}
@@ -32,16 +35,18 @@ public class ExpDto {
 	@AllArgsConstructor
 	public static class Response {
 		private Long id;
-		private Integer amount;
+		private Integer stock;
 		private Boolean status;
+		private Date deadline;
 		private LocalDateTime createdAt;
 		private LocalDateTime updatedAt;
 
 		public static Response fromEntity(Exp exp) {
 			return Response.builder()
 				.id(exp.getId())
-				.amount(exp.getAmount())
+				.stock(exp.getStock())
 				.status(exp.getStatus())
+				.deadline(exp.getDeadline())
 				.createdAt(exp.getCreatedAt())
 				.updatedAt(exp.getUpdatedAt())
 				.build();
@@ -53,12 +58,14 @@ public class ExpDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class UpdateRequest {
-		private Integer amount;
+		private Integer stock;
 		private Boolean status;
+		private Date deadline;
 
 		public void updateEntity(Exp exp) {
-			if (amount != null) exp.setAmount(amount);
+			if (stock != null) exp.setStock(stock);
 			if (status != null) exp.setStatus(status);
+			if (deadline != null) exp.setDeadline(deadline);
 		}
 	}
 }

@@ -16,7 +16,6 @@ public class TProductDTO {
 	private String name;
 	private String code;
 	private Integer price;
-	private Integer stock;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 }

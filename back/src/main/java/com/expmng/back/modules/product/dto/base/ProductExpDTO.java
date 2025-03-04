@@ -17,12 +17,11 @@ public class ProductExpDTO {
 	private String name;
 	private String code;
 	private BigDecimal price;
-	private Integer stock;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 
 	private Long expId;
-	private Integer amount;
+	private Integer stock;
 	private Boolean status;
 	private Long expCreatedAt;
 	private Long expUpdatedAt;

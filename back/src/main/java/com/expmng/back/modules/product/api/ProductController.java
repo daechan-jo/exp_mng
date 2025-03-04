@@ -9,10 +9,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.data.domain.Pageable;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -34,12 +37,6 @@ public class ProductController {
 	@GetMapping
 	public ResponseEntity<List<ProductDto.Response>> getAllProducts() {
 		return ResponseEntity.ok(productService.getAllProducts());
-	}
-
-	@Operation(summary = "재고가 있는 제품 조회", description = "재고가 있는 제품 목록만 조회합니다.")
-	@GetMapping("/in-stock")
-	public ResponseEntity<List<ProductDto.Response>> getProductsInStock() {
-		return ResponseEntity.ok(productService.getProductsInStock());
 	}
 
 	@Operation(summary = "제품명으로 검색", description = "제품명에 특정 키워드가 포함된 제품을 검색합니다.")
@@ -92,5 +89,19 @@ public class ProductController {
 	public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
 		productService.deleteProduct(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	@Operation(summary = "유통기한 조회", description = "유통기한 임박기간 내림차순으로 조회합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "조회 성공"),
+	})
+	@GetMapping("/expiring")
+	public ResponseEntity<Page<ProductDto.ExpProductResponse>> getExpiringProducts(
+		@RequestParam(defaultValue = "0") int page,
+		@RequestParam(defaultValue = "10") int size,
+		@RequestParam(defaultValue = "deadline") String sort) {
+
+		Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+		return ResponseEntity.ok(productService.getExpiringProducts(pageable));
 	}
 }

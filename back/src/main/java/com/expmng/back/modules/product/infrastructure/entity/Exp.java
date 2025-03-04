@@ -4,6 +4,8 @@ import com.expmng.back.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
+
 
 @Entity
 @Table(name = "exps")
@@ -17,10 +19,12 @@ public class Exp extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private Integer amount;
+	private Integer stock;
 
 	@Column(nullable = false)
 	private Boolean status;
+
+	private Date deadline;
 
 
 	@ManyToOne(fetch = FetchType.LAZY)

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TExpDTO {
 	private Long id;
-	private Integer amount;
+	private Integer stock;
 	private Boolean status;
 	private Long createdAt;
 	private Long updatedAt;

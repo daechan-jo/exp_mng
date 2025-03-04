@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,16 +34,12 @@ public class ProductDto {
 		@PositiveOrZero(message = "가격은 0 이상이어야 합니다.")
 		private Integer price;
 
-		@Schema(description = "재고 수량", example = "100")
-		private Integer stock;
-
 		// Entity 변환 메서드
 		public Product toEntity() {
 			return Product.builder()
 				.name(name)
 				.code(code)
 				.price(price)
-				.stock(stock)
 				.build();
 		}
 	}
@@ -65,8 +62,6 @@ public class ProductDto {
 		@Schema(description = "제품 가격", example = "1000000")
 		private Integer price;
 
-		@Schema(description = "재고 수량", example = "100")
-		private Integer stock;
 
 		@Schema(description = "생성 시간")
 		private LocalDateTime createdAt;
@@ -85,7 +80,6 @@ public class ProductDto {
 				.name(product.getName())
 				.code(product.getCode())
 				.price(product.getPrice())
-				.stock(product.getStock())
 				.createdAt(product.getCreatedAt())
 				.updatedAt(product.getUpdatedAt());
 
@@ -116,14 +110,38 @@ public class ProductDto {
 		@Schema(description = "제품 가격", example = "1200000")
 		private Integer price;
 
-		@Schema(description = "재고 수량", example = "50")
-		private Integer stock;
-
 		public void updateEntity(Product product) {
 			if (name != null) product.setName(name);
 			if (code != null) product.setCode(code);
 			if (price != null) product.setPrice(price);
-			if (stock != null) product.setStock(stock);
 		}
+	}
+
+	@Schema(description = "유통기한 임박 상품 응답 DTO")
+	@Data
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class ExpProductResponse {
+		@Schema(description = "제품 ID", example = "1")
+		private Long productId;
+
+		@Schema(description = "제품명", example = "농심)신라면")
+		private String productName;
+
+		@Schema(description = "제품 코드", example = "PROD-001")
+		private String productCode;
+
+		@Schema(description = "제품 가격", example = "1000")
+		private Integer price;
+
+		@Schema(description = "재고 ID", example = "1")
+		private Long expId;
+
+		@Schema(description = "재고 수량", example = "10")
+		private Integer stock;
+
+		@Schema(description = "유통기한", example = "2023-12-31")
+		private Date deadline;
 	}
 }

@@ -9,15 +9,13 @@ import lombok.*;
 
 import java.util.List;
 
-
-// todo 겟터셋터는 롬북으로 안돼? @Data
 @Entity
 @Table(name = "products")
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Product extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,8 +31,6 @@ public class Product extends BaseEntity {
 	@PositiveOrZero(message = "가격은 0 이상이어야 합니다.")
 	@Column(nullable = false)
 	private Integer price;
-
-	private Integer stock;
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Exp> exps;
