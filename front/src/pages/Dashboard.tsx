@@ -1,72 +1,116 @@
-// pages/Dashboard.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, ListChecks } from 'lucide-react';
-import { Exp, sampleExp } from '../models/Exp.ts';
 import ProductListItem from '../components/dashboard/ProductListItem';
+import { ExpProduct } from '../models/ExpProduct.ts';
 
 const Dashboard: React.FC = () => {
-  const [products, setProducts] = useState<Exp[]>([]);
+  const [products, setProducts] = useState<ExpProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
   const [showAnimation, setShowAnimation] = useState(false);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  // 서버에서 데이터 로드
-  const loadData = () => {
+  const loadData = useCallback(async () => {
+    if (loading || !hasMore) return; // 로딩 중이거나 더 이상 데이터가 없으면 요청하지 않음
+
     setLoading(true);
 
-    // 서버에서 현재 날짜 기준 데이터를 가져옴
-    setTimeout(() => {
-      // 현재 날짜 기준 필터링 (테스트를 위해 모든 데이터 반환)
-      const filteredData = [...sampleExp];
+    try {
+      const url =
+        activeTab === 'pending'
+          ? `http://localhost:8080/api/products/expiring?page=${page}&size=10&status=false`
+          : `http://localhost:8080/api/products/expiring?page=${page}&size=10&status=true`;
 
-      // 탭에 따라 정렬
-      if (activeTab === 'pending') {
-        // 확인 필요 탭: 미확인 상품만 보여주고 유통기한 순 정렬
-        const pendingProducts = filteredData
-          .filter((p) => !p.status)
-          .sort((a, b) => new Date(a.exp).getTime() - new Date(b.exp).getTime());
+      const response = await fetch(url);
+      const data = await response.json();
 
-        setProducts(pendingProducts);
+      console.log('API Response:', data); // 응답 데이터 확인용 로그
+
+      // 마지막 페이지(last=true)일 때만 hasMore를 false로 설정
+      if (!data.content || data.content.length === 0 || data.last) {
+        setHasMore(false);
+        // return 문은 제거하세요! 응답된 데이터는 처리해야 합니다
+      }
+
+      // 첫 페이지면 데이터 교체, 아니면 추가
+      if (page === 0) {
+        console.log('first page');
+        setProducts(data.content);
       } else {
-        // 확인 완료 탭: 확인된 상품만 보여주고 최근 확인 순으로 정렬 (ID로 대체)
-        const completedProducts = filteredData.filter((p) => p.status).sort((a, b) => b.id - a.id); // 실제로는 확인 일시 기준으로 정렬해야 함
-
-        setProducts(completedProducts);
+        setProducts((prevProducts) => {
+          const newProducts = [...prevProducts, ...data.content];
+          console.log('Updated products:', newProducts);
+          return newProducts;
+        });
       }
 
-      setShowAnimation(true);
+      setTotalPages(data.totalPages);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
       setLoading(false);
+    }
+  }, [activeTab, loading, page, hasMore]);
 
-      // 애니메이션 플래그 초기화
-      setTimeout(() => {
-        setShowAnimation(false);
-      }, 500);
-    }, 500);
-  };
-
-  // 초기 데이터 로드
+  // 탭 변경 시 데이터 초기화 및 첫 페이지 로드
   useEffect(() => {
+    setProducts([]);
+    setPage(0);
+    setHasMore(true);
     loadData();
-  }, [activeTab]); // 탭이 변경될 때마다 데이터 다시 로드
+  }, [activeTab]);
 
+  // 페이지 변경 시 추가 데이터 로드
+  useEffect(() => {
+    if (page > 0) {
+      loadData();
+    }
+  }, [page, loadData]);
+
+  // 페이지 끝에 도달 시 다음 페이지 요청
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (loading || !hasMore) return;
+
+    const target = e.target as HTMLDivElement;
+    const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
+
+    // 스크롤이 바닥에 가까워지면 (200px 이내) 다음 페이지 로드
+    if (scrollBottom < 200) {
+      console.log('Loading next page:', page + 1);
+      setPage((prevPage) => prevPage + 1);
+    }
+  };
   // 체크 상태 토글
-  const toggleCheck = (id: number) => {
-    setProducts((prevProducts) => {
-      const updatedProducts = prevProducts.filter((product) => product.id !== id);
+  const toggleCheck = async (id: number) => {
+    try {
+      // 서버에 상태 업데이트 요청
+      await fetch(`http://localhost:8080/api/products/exp/${id}/toggle-status`, {
+        method: 'PUT',
+      });
 
-      // 상태 변경
-      const toggledProduct = sampleExp.find((p) => p.id === id);
-      if (toggledProduct) {
-        toggledProduct.status = !toggledProduct.status;
-      }
+      // UI 업데이트
+      setProducts((prevProducts) =>
+        prevProducts.filter(
+          (product) =>
+            (activeTab === 'pending' && !product.status) ||
+            (activeTab === 'completed' && product.status),
+        ),
+      );
 
-      return updatedProducts;
-    });
+      // 데이터 다시 로드
+      setPage(0);
+      setHasMore(true);
+      loadData();
+    } catch (error) {
+      console.error('Error toggling status:', error);
+    }
   };
 
   // 확인해야 할 상품과 확인한 상품 개수 계산
-  const pendingCount = sampleExp.filter((p) => !p.status).length;
-  const completedCount = sampleExp.filter((p) => p.status).length;
+  const pendingCount = activeTab === 'pending' ? products.length : 0;
+  const completedCount = activeTab === 'completed' ? products.length : 0;
 
   return (
     <div className="p-4 h-full flex flex-col">
@@ -140,31 +184,34 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* 상품 목록 */}
-      <div className="flex-grow overflow-y-auto bg-gray-50 rounded-lg mb-4">
-        {loading ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
+      <div
+        className="flex-grow overflow-y-auto bg-gray-50 rounded-lg mb-4 h-[calc(100vh-200px)]"
+        onScroll={handleScroll}
+      >
+        {products.length === 0 && !loading ? (
+          <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+            <p>
+              {activeTab === 'pending'
+                ? '확인이 필요한 상품이 없습니다.'
+                : '확인 완료된 상품이 없습니다.'}
+            </p>
           </div>
         ) : (
           <div className="space-y-3 p-3">
-            {products.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32 text-gray-500">
-                <p>
-                  {activeTab === 'pending'
-                    ? '확인이 필요한 상품이 없습니다.'
-                    : '확인 완료된 상품이 없습니다.'}
-                </p>
-              </div>
-            ) : (
-              products.map((product) => (
-                <ProductListItem
-                  key={product.id}
-                  product={product}
-                  onToggleCheck={toggleCheck}
-                  showAnimation={showAnimation}
-                />
-              ))
-            )}
+            {products.map((product) => (
+              <ProductListItem
+                key={product.expId}
+                product={product}
+                onToggleCheck={toggleCheck}
+                showAnimation={showAnimation}
+              />
+            ))}
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex justify-center items-center py-4">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
           </div>
         )}
       </div>

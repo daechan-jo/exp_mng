@@ -95,6 +95,7 @@ public class ProductService {
 				.expId(exp.getId())
 				.stock(exp.getStock())
 				.deadline(exp.getDeadline())
+				.status(exp.getStatus())
 				.build();
 		});
 	}

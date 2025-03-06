@@ -1,7 +1,7 @@
 // models/Exp.ts
 export interface Product {
   id: number;
-  name: string; // 공백없이
+  name: string;
   code: string;
   stock: number;
 }

@@ -143,5 +143,8 @@ public class ProductDto {
 
 		@Schema(description = "유통기한", example = "2023-12-31")
 		private Date deadline;
+
+		@Schema(description = "상태", example = "false")
+		private boolean status;
 	}
 }
