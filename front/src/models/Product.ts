@@ -2,8 +2,9 @@
 export interface Product {
   id: number;
   name: string;
-  code: string;
-  stock: number;
+  code?: string;
+  stock?: number;
+  standard?: number;
 }
 
 // 임의의 상품 데이터 생성

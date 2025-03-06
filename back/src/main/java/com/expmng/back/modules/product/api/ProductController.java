@@ -1,6 +1,7 @@
 package com.expmng.back.modules.product.api;
 
 import com.expmng.back.modules.product.core.ProductService;
+import com.expmng.back.modules.product.dto.ExpDto;
 import com.expmng.back.modules.product.dto.ProductDto;
 import com.expmng.back.modules.product.dto.StatusDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,9 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 import jakarta.validation.Valid;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -40,12 +39,6 @@ public class ProductController {
 	@GetMapping
 	public ResponseEntity<List<ProductDto.Response>> getAllProducts() {
 		return ResponseEntity.ok(productService.getAllProducts());
-	}
-
-	@Operation(summary = "제품명으로 검색", description = "제품명에 특정 키워드가 포함된 제품을 검색합니다.")
-	@GetMapping("/search")
-	public ResponseEntity<List<ProductDto.Response>> searchProducts(@RequestParam String name) {
-		return ResponseEntity.ok(productService.searchProductsByName(name));
 	}
 
 	@Operation(summary = "제품 상세 조회", description = "특정 ID의 제품 상세 정보를 조회합니다.")
@@ -98,7 +91,7 @@ public class ProductController {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "조회 성공"),
 	})
-	@GetMapping("/expiring")
+	@GetMapping("/exp")
 	public ResponseEntity<Page<ProductDto.ExpProductResponse>> getExpiringProducts(
 		@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "10") int size,
@@ -113,9 +106,22 @@ public class ProductController {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "조회 성공"),
 	})
-	@GetMapping("/expiring/count")
+	@GetMapping("/exp/count")
 	public ResponseEntity<StatusDto.Count> getExpiringTodayCount() {
 		StatusDto.Count count = productService.getExpiringTodayCount();
 		return ResponseEntity.ok(count);
+	}
+
+	@Operation(summary = "유통기한 토글", description = "유통기한 확인/미확인 토글")
+	@PutMapping("/exp/{id}")
+	public ResponseEntity<ExpDto.Response> updateExp(
+		@PathVariable Long id,
+		@Valid @RequestBody ExpDto.UpdateRequest updateDto) {
+		return ResponseEntity.ok(productService.updateExp(id, updateDto));
+	}
+
+	@GetMapping("/search")
+	public ResponseEntity<List<ProductDto.Response>> searchProducts(@RequestParam String query) {
+		return ResponseEntity.ok(productService.searchProducts(query));
 	}
 }

@@ -58,14 +58,10 @@ public class ExpDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class UpdateRequest {
-		private Integer stock;
 		private Boolean status;
-		private Date deadline;
 
 		public void updateEntity(Exp exp) {
-			if (stock != null) exp.setStock(stock);
 			if (status != null) exp.setStatus(status);
-			if (deadline != null) exp.setDeadline(deadline);
 		}
 	}
 }

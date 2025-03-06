@@ -3,6 +3,7 @@ package com.expmng.back.modules.product.dto;
 import com.expmng.back.modules.product.infrastructure.entity.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,11 +29,17 @@ public class ProductDto {
 		private String name;
 
 		@Schema(description = "제품 코드", example = "PROD001")
+		@Null
 		private String code;
 
 		@Schema(description = "제품 가격", example = "1000000")
 		@PositiveOrZero(message = "가격은 0 이상이어야 합니다.")
 		private Integer price;
+
+		@Schema(description = "제품 규격", example = "3")
+		@PositiveOrZero(message = "규격은 0 이상이어야 합니다.")
+		@Null
+		private Double standard;
 
 		// Entity 변환 메서드
 		public Product toEntity() {
@@ -62,6 +69,9 @@ public class ProductDto {
 		@Schema(description = "제품 가격", example = "1000000")
 		private Integer price;
 
+		@Schema(description = "제품 규격", example = "3")
+		private Double standard;
+
 
 		@Schema(description = "생성 시간")
 		private LocalDateTime createdAt;
@@ -79,6 +89,7 @@ public class ProductDto {
 				.id(product.getId())
 				.name(product.getName())
 				.code(product.getCode())
+				.standard(product.getStandard())
 				.price(product.getPrice())
 				.createdAt(product.getCreatedAt())
 				.updatedAt(product.getUpdatedAt());
@@ -107,12 +118,16 @@ public class ProductDto {
 		@Schema(description = "제품 코드", example = "PROD-002")
 		private String code;
 
+		@Schema(description = "제품 규격", example = "4")
+		private Double standard;
+
 		@Schema(description = "제품 가격", example = "1200000")
 		private Integer price;
 
 		public void updateEntity(Product product) {
 			if (name != null) product.setName(name);
 			if (code != null) product.setCode(code);
+			if (standard != null) product.setStandard(standard);
 			if (price != null) product.setPrice(price);
 		}
 	}
@@ -146,5 +161,8 @@ public class ProductDto {
 
 		@Schema(description = "상태", example = "false")
 		private boolean status;
+
+		@Schema(description = "규격", example = "3")
+		private Double standard;
 	}
 }

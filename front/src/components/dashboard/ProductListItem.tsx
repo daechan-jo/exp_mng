@@ -25,6 +25,7 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
           productName={product.productName}
           deadline={product.deadline}
           stock={product.stock}
+          standard={product.standard}
         />
 
         <CheckButton isChecked={product.status} onToggle={() => onToggleCheck(product.expId)} />

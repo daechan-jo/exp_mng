@@ -7,4 +7,5 @@ export interface ExpProduct {
   stock: number;
   deadline: Date;
   status: boolean;
+  standard: number;
 }

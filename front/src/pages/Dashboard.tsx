@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DashboardTabs from '../components/dashboard/DashboardTabs';
 import ProductList from '../components/dashboard/ProductList';
 import { useExpiringProducts } from '../hooks/useExpiringProducts';
@@ -15,6 +15,7 @@ const Dashboard: React.FC = () => {
     handleLoadMore,
     pendingCount,
     completedCount,
+    loadData,
   } = useExpiringProducts();
 
   // 페이지 끝에 도달 시 다음 페이지 요청
@@ -29,6 +30,40 @@ const Dashboard: React.FC = () => {
       handleLoadMore();
     }
   };
+
+  // 매 분마다 pending 탭에서 데이터 새로고침
+  useEffect(() => {
+    let timeoutId: number | null = null;
+    let intervalId: number | null = null;
+
+    if (activeTab === 'pending') {
+      // 다음 분까지 남은 시간 계산 (밀리초)
+      const now = new Date();
+      const secondsUntilNextMinute = 60 - now.getSeconds();
+      const msUntilNextMinute = secondsUntilNextMinute * 1000 - now.getMilliseconds();
+
+      // 첫 번째 실행은 다음 분이 시작될 때
+      timeoutId = window.setTimeout(() => {
+        // 분이 바뀌면 데이터 로드
+        loadData();
+
+        // 이후 매 분마다 실행
+        intervalId = window.setInterval(() => {
+          loadData();
+        }, 60000); // 60초 = 1분
+      }, msUntilNextMinute);
+    }
+
+    // 컴포넌트 언마운트 또는 탭 변경 시 타이머 정리
+    return () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+      }
+    };
+  }, [activeTab, loadData]);
 
   return (
     <div className="p-4 h-full flex flex-col">

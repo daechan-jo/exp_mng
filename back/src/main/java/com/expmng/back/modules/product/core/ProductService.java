@@ -1,5 +1,6 @@
 package com.expmng.back.modules.product.core;
 
+import com.expmng.back.modules.product.dto.ExpDto;
 import com.expmng.back.modules.product.dto.ProductDto;
 import com.expmng.back.modules.product.dto.StatusDto;
 import com.expmng.back.modules.product.infrastructure.entity.Exp;
@@ -7,7 +8,6 @@ import com.expmng.back.modules.product.infrastructure.entity.Product;
 import com.expmng.back.modules.product.infrastructure.repository.ExpRepository;
 import com.expmng.back.modules.product.infrastructure.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
@@ -101,6 +101,7 @@ public class ProductService {
 				.productName(product.getName())
 				.productCode(product.getCode())
 				.price(product.getPrice())
+				.standard(product.getStandard())
 				.expId(exp.getId())
 				.stock(exp.getStock())
 				.deadline(exp.getDeadline())
@@ -121,5 +122,22 @@ public class ProductService {
 		Long falseCount = expRepository.countByDeadlineBetweenAndStatusFalse(startOfDay, endOfDay);
 		Long trueCount = expRepository.countByDeadlineBetweenAndStatusTrue(startOfDay, endOfDay);
 		return new StatusDto.Count(falseCount, trueCount);
+	}
+
+	@Transactional
+	public ExpDto.Response updateExp(Long id, ExpDto.UpdateRequest updateDto) {
+		Exp exp = expRepository.findById(id)
+			.orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+
+		updateDto.updateEntity(exp);
+		Exp updatedExp = expRepository.save(exp);
+		return ExpDto.Response.fromEntity(updatedExp);
+	}
+
+	public List<ProductDto.Response> searchProducts(String query) {
+		// PostgreSQL의 유사도 검색 활용
+		return productRepository.searchByNameOrCode(query).stream()
+			.map(ProductDto.Response::fromEntity)
+			.collect(Collectors.toList());
 	}
 }

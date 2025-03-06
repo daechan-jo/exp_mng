@@ -28,6 +28,9 @@ public class Product extends BaseEntity {
 	@Column(length = 100)
 	private String code;
 
+	@Column()
+	private Double standard;
+
 	@PositiveOrZero(message = "가격은 0 이상이어야 합니다.")
 	@Column(nullable = false)
 	private Integer price;

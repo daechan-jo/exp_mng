@@ -5,9 +5,10 @@ interface ProductInfoProps {
   productName: string;
   deadline: string | Date;
   stock: number;
+  standard: number;
 }
 
-const ProductInfo: React.FC<ProductInfoProps> = ({ productName, deadline, stock }) => {
+const ProductInfo: React.FC<ProductInfoProps> = ({ productName, deadline, stock, standard }) => {
   const timeRemaining = getTimeRemaining(deadline);
   const timeColor = getTimeColor(timeRemaining);
 
@@ -25,8 +26,9 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ productName, deadline, stock 
         )}
       </div>
 
-      {/* 재고 수량 */}
-      <div className="mt-1 text-sm text-gray-600">
+      {/* 규격, 수량 */}
+      <div className="mt-1 text-sm text-gray-600 flex gap-4">
+        <span>규격: {standard || 'null'}</span>
         <span>수량: {stock || 0}개</span>
       </div>
     </div>
