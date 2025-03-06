@@ -27,10 +27,9 @@ public class ProductService {
 	private final ExpRepository expRepository;
 
 	@Transactional(readOnly = true)
-	public List<ProductDto.Response> getAllProducts() {
-		return productRepository.findAll().stream()
-			.map(ProductDto.Response::fromEntity)
-			.collect(Collectors.toList());
+	public Page<ProductDto.Response> getAllProducts(Pageable pageable) {
+		Page<Product> productPage = productRepository.findAll(pageable);
+		return productPage.map(ProductDto.Response::fromEntity);
 	}
 
 	@Transactional(readOnly = true)
@@ -134,10 +133,12 @@ public class ProductService {
 		return ExpDto.Response.fromEntity(updatedExp);
 	}
 
-	public List<ProductDto.Response> searchProducts(String query) {
+	public Page<ProductDto.Response> searchProducts(String query, Pageable pageable) {
 		// PostgreSQL의 유사도 검색 활용
-		return productRepository.searchByNameOrCode(query).stream()
-			.map(ProductDto.Response::fromEntity)
-			.collect(Collectors.toList());
+		Page<Product> productPage = productRepository.searchByNameOrCode(
+			query, pageable
+		);
+
+		return productPage.map(ProductDto.Response::fromEntity);
 	}
 }

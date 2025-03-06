@@ -37,8 +37,12 @@ public class ProductController {
 		@ApiResponse(responseCode = "500", description = "서버 오류")
 	})
 	@GetMapping
-	public ResponseEntity<List<ProductDto.Response>> getAllProducts() {
-		return ResponseEntity.ok(productService.getAllProducts());
+	public ResponseEntity<Page<ProductDto.Response>> getAllProducts(
+		@RequestParam(defaultValue = "0") int page,
+		@RequestParam(defaultValue = "10") int size) {
+
+		Pageable pageable = PageRequest.of(page, size);
+		return ResponseEntity.ok(productService.getAllProducts(pageable));
 	}
 
 	@Operation(summary = "제품 상세 조회", description = "특정 ID의 제품 상세 정보를 조회합니다.")
@@ -121,7 +125,13 @@ public class ProductController {
 	}
 
 	@GetMapping("/search")
-	public ResponseEntity<List<ProductDto.Response>> searchProducts(@RequestParam String query) {
-		return ResponseEntity.ok(productService.searchProducts(query));
+	public ResponseEntity<Page<ProductDto.Response>> searchProducts(
+		@RequestParam String query,
+		@RequestParam(defaultValue = "0") int page,
+		@RequestParam(defaultValue = "10") int size) {
+
+		Pageable pageable = PageRequest.of(page, size);
+
+		return ResponseEntity.ok(productService.searchProducts(query, pageable));
 	}
 }

@@ -67,10 +67,39 @@ export const toggleProductStatus = async (id: number, activeTab: string): Promis
 };
 
 // 상품 검색 (유사도 기반)
-export const searchProducts = async (query: string): Promise<Product[]> => {
+// export const searchProducts = async (query: string): Promise<Product[]> => {
+//   try {
+//     const response = await fetch(
+//       `${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`,
+//     );
+//     if (!response.ok) {
+//       throw new Error(`검색 실패: ${response.status}`);
+//     }
+//     return await response.json();
+//   } catch (error) {
+//     console.error('검색 중 오류 발생:', error);
+//     throw error;
+//   }
+// };
+
+export const fetchProductsPage = async (page: number = 0, size: number = 10) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products?page=${page}&size=${size}`);
+    if (!response.ok) {
+      throw new Error(`상품 목록 가져오기 실패: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('상품 목록 가져오기 중 오류 발생:', error);
+    throw error;
+  }
+};
+
+// 검색 (페이지네이션 적용)
+export const searchProducts = async (query: string, page: number = 0, size: number = 10) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`,
+      `${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}&page=${page}&size=${size}`,
     );
     if (!response.ok) {
       throw new Error(`검색 실패: ${response.status}`);
@@ -78,20 +107,6 @@ export const searchProducts = async (query: string): Promise<Product[]> => {
     return await response.json();
   } catch (error) {
     console.error('검색 중 오류 발생:', error);
-    throw error;
-  }
-};
-
-// 모든 상품 가져오기
-export const fetchProducts = async (): Promise<Product[]> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/products`);
-    if (!response.ok) {
-      throw new Error(`상품 목록 가져오기 실패: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('상품 목록 가져오기 중 오류 발생:', error);
     throw error;
   }
 };
@@ -132,6 +147,30 @@ export const saveProduct = async (product: Product): Promise<Product> => {
     return await response.json();
   } catch (error) {
     console.error('상품 저장 중 오류 발생:', error);
+    throw error;
+  }
+};
+
+// 유통기한 추가 API
+export const addExpiration = async (expData: {
+  productId: number;
+  deadline: string;
+  stock: number;
+}): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/exp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(expData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`유통기한 추가 실패: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('유통기한 추가 중 오류 발생:', error);
     throw error;
   }
 };

@@ -1,52 +1,68 @@
-// components/manage/ProductListItem.tsx
-import React, { useState } from 'react';
-import { Edit, Trash2 } from 'lucide-react';
-import { Product } from '../../models/Product.ts';
-// import { formatDate } from '../../utils/dateUtils';
+import React from 'react';
+import { Product } from '../../models/Product';
 
 interface ProductListItemProps {
   product: Product;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  onEdit: () => void;
+  onAddExp: () => void;
 }
 
-const ProductListItem: React.FC<ProductListItemProps> = ({ product, onEdit, onDelete }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = () => {
-    // 삭제 애니메이션 시작
-    setIsDeleting(true);
-
-    // 애니메이션 종료 후 실제 삭제 수행
-    setTimeout(() => {
-      onDelete(product.id);
-    }, 300); // 애니메이션 지속 시간과 일치
-  };
-
+const ProductListItem: React.FC<ProductListItemProps> = ({ product, onEdit, onAddExp }) => {
   return (
-    <div
-      className={`
-        bg-white shadow-md rounded-lg p-4 flex justify-between items-center 
-        transition-all duration-300 ease-in-out
-        ${isDeleting ? 'opacity-0 scale-95 h-0 py-0 overflow-hidden' : 'opacity-100 scale-100'}
-      `}
-    >
-      <div>
-        <h3 className="font-medium">{product.name}</h3>
-        <div className="flex items-center mt-1">
-          <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded mr-2">
-            상품코드: {product.code}
-          </span>
-          <p className="text-sm text-gray-500">재고: 나중에</p>
+    <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-200 transition-all duration-200">
+      <div className="flex justify-between items-center">
+        <div className="flex-1">
+          {/* 상품 이름 */}
+          <h3 className="font-medium text-gray-900">{product.name}</h3>
+
+          {/* 상품 코드 */}
+          <div className="mt-1 text-sm text-gray-600">상품코드: {product.code}</div>
+
+          {/* 규격 */}
+          <div className="mt-1 text-sm text-gray-600">규격: {product.standard || '없음'}</div>
         </div>
-      </div>
-      <div className="flex">
-        <button onClick={() => onEdit(product.id)} className="text-blue-500 p-1 mr-1">
-          <Edit size={18} />
-        </button>
-        <button onClick={handleDelete} className="text-red-500 p-1">
-          <Trash2 size={18} />
-        </button>
+
+        <div className="flex space-x-2">
+          {/* 유통기한 추가 버튼 */}
+          <button
+            onClick={onAddExp}
+            className="flex items-center justify-center w-10 h-10 bg-green-50 text-green-600 rounded-full hover:bg-green-100 transition-colors"
+            title="유통기한 추가"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </button>
+
+          {/* 수정 버튼 */}
+          <button
+            onClick={onEdit}
+            className="flex items-center justify-center w-10 h-10 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+            title="수정"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );

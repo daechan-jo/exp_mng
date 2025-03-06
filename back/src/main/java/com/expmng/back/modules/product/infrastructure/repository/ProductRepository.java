@@ -1,6 +1,8 @@
 package com.expmng.back.modules.product.infrastructure.repository;
 
 import com.expmng.back.modules.product.infrastructure.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,6 +25,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 		"ORDER BY " +
 		"CASE WHEN name ILIKE %:query% OR code ILIKE %:query% THEN 1 ELSE 2 END, " +
 		"similarity(name, :query) + similarity(code, :query) DESC",
+		countQuery = "SELECT COUNT(*) FROM products WHERE " +
+			"name ILIKE %:query% OR " +
+			"code ILIKE %:query% OR " +
+			"similarity(name, :query) > 0.3 OR " +
+			"similarity(code, :query) > 0.3",
 		nativeQuery = true)
-	List<Product> searchByNameOrCode(@Param("query") String query);
+	Page<Product> searchByNameOrCode(@Param("query") String query, Pageable pageable);
 }

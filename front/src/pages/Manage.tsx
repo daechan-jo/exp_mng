@@ -1,99 +1,139 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Product } from '../models/Product';
 import SearchBar from '../components/manage/SearchBar';
 import ProductListItem from '../components/manage/ProductListItem';
-import Pagination from '../components/manage/Pagination';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import EditProductModal from '../components/manage/EditProductModal';
+import AddExpModal from '../components/manage/AddExpModal';
 import {
   searchProducts,
-  fetchProducts,
+  fetchProductsPage,
   deleteProduct,
   saveProduct,
+  addExpiration,
 } from '../services/productService';
 
 const Manage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchText, setSearchText] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddExpModalOpen, setIsAddExpModalOpen] = useState(false);
+
+  // 무한 스크롤을 위한 상태
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [totalItems, setTotalItems] = useState(0);
-  const itemsPerPage = 5;
+
+  // 요청 상태 관리를 위한 ref
+  const loadingRef = useRef(false);
+  const requestIdRef = useRef<string>('');
+  const prevSearchRef = useRef('');
 
   // 상품 데이터 로드
-  const loadProducts = useCallback(async () => {
-    try {
-      const data = await fetchProducts();
-      setProducts(data);
-      setFilteredProducts(data);
-      setTotalItems(data.length);
-    } catch (error) {
-      console.error('상품 데이터 로드 실패:', error);
-    }
-  }, []);
+  const loadData = useCallback(async () => {
+    if (isLoading || (!hasMore && page > 0)) return;
 
-  // 초기 데이터 로드
+    const currentRequestId = `${searchText}-${page}`;
+    if (loadingRef.current && requestIdRef.current === currentRequestId) {
+      return;
+    }
+
+    // 현재 요청 정보 저장
+    loadingRef.current = true;
+    requestIdRef.current = currentRequestId;
+    prevSearchRef.current = searchText;
+
+    setIsLoading(true);
+
+    try {
+      // 검색어가 있으면 검색 API, 없으면 일반 목록 API 호출
+      const data = searchText.trim()
+        ? await searchProducts(searchText, page)
+        : await fetchProductsPage(page);
+
+      // 마지막 페이지 체크
+      if (!data.content || data.content.length === 0 || data.last) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
+
+      // 첫 페이지면 데이터 교체, 아니면 추가
+      if (page === 0) {
+        setProducts(data.content);
+      } else {
+        setProducts((prevProducts) => [...prevProducts, ...data.content]);
+      }
+
+      setTotalItems(data.totalElements);
+    } catch (error) {
+      console.error('데이터 로드 실패:', error);
+    } finally {
+      setIsLoading(false);
+      loadingRef.current = false;
+    }
+  }, [isLoading, searchText, page, hasMore]);
+
+  // 초기 데이터 로드 및 페이지/검색어 변경 시 데이터 로드
   useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    const currentRequestId = `${searchText}-${page}`;
+    if (requestIdRef.current !== currentRequestId) {
+      loadData();
+    }
+  }, [searchText, page, loadData]);
 
   // 검색어 디바운스 처리
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (searchText) {
-        setIsLoading(true);
-        try {
-          // 서버에 검색 요청
-          const results = await searchProducts(searchText);
-          setFilteredProducts(results);
-          setTotalItems(results.length);
-          setCurrentPage(1); // 검색 결과가 변경되면 첫 페이지로 이동
-        } catch (error) {
-          console.error('검색 실패:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        // 검색어가 없으면 전체 상품 표시
-        setFilteredProducts(products);
-        setTotalItems(products.length);
-      }
-    }, 500); // 사용자가 타이핑을 멈춘 후 500ms 후에 검색 실행
+    if (prevSearchRef.current !== searchText) {
+      const timer = setTimeout(() => {
+        // 검색어 변경 시 첫 페이지부터 다시 로드
+        setPage(0);
+        setHasMore(true);
+      }, 500);
 
-    return () => clearTimeout(timer);
-  }, [searchText, products]);
+      return () => clearTimeout(timer);
+    }
+  }, [searchText]);
 
-  // 페이지네이션
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  // 스크롤 핸들러
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (isLoading || !hasMore) return;
 
-  // 페이지 변경 핸들러
-  const handlePageChange = (pageNumber: number) => setCurrentPage(pageNumber);
+    const target = e.target as HTMLDivElement;
+    const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
+
+    // 스크롤이 바닥에 가까워지면 (200px 이내) 다음 페이지 로드
+    if (scrollBottom < 200) {
+      setPage((prevPage) => prevPage + 1);
+    }
+  };
 
   // 상품 편집 핸들러
-  const handleEdit = (id: number) => {
-    const productToEdit = products.find((product) => product.id === id);
-    if (productToEdit) {
-      setSelectedProduct(productToEdit);
-      setIsModalOpen(true);
-    }
+  const handleEdit = (product: Product) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
+  };
+
+  // 유통기한 추가 핸들러
+  const handleAddExp = (product: Product) => {
+    setSelectedProduct(product);
+    setIsAddExpModalOpen(true);
   };
 
   // 상품 삭제 핸들러
   const handleDelete = async (id: number) => {
-    if (window.confirm('정말로 이 상품을 삭제하시겠습니까?')) {
-      try {
-        await deleteProduct(id);
-        // 삭제 후 목록 다시 로드
-        loadProducts();
-      } catch (error) {
-        console.error('상품 삭제 실패:', error);
-        alert('상품 삭제 중 오류가 발생했습니다.');
-      }
+    try {
+      await deleteProduct(id);
+      // 삭제 후 첫 페이지부터 다시 로드
+      setPage(0);
+      setHasMore(true);
+      requestIdRef.current = '';
+      loadData();
+    } catch (error) {
+      console.error('상품 삭제 실패:', error);
+      alert('상품 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -101,19 +141,16 @@ const Manage: React.FC = () => {
   const handleSaveProduct = async (updatedProduct: Product) => {
     try {
       await saveProduct(updatedProduct);
-      handleCloseModal();
-      // 저장 후 목록 다시 로드
-      loadProducts();
+      setIsEditModalOpen(false);
+      // 저장 후 첫 페이지부터 다시 로드
+      setPage(0);
+      setHasMore(true);
+      requestIdRef.current = '';
+      loadData();
     } catch (error) {
       console.error('상품 저장 실패:', error);
       alert('상품 저장 중 오류가 발생했습니다.');
     }
-  };
-
-  // 모달 닫기 핸들러
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedProduct(null);
   };
 
   // 상품 추가 핸들러
@@ -123,23 +160,43 @@ const Manage: React.FC = () => {
       id: 0, // 서버에서 ID 부여
       name: '',
       code: '',
-      standard: '1',
+      standard: 1,
     };
 
     setSelectedProduct(newProduct);
-    setIsModalOpen(true);
+    setIsEditModalOpen(true);
+  };
+
+  // 유통기한 저장 핸들러
+  const handleSaveExpiration = async (expData: {
+    productId: number;
+    deadline: string;
+    stock: number;
+  }) => {
+    try {
+      await addExpiration(expData);
+      setIsAddExpModalOpen(false);
+      // 저장 후 데이터 다시 로드
+      setPage(0);
+      setHasMore(true);
+      requestIdRef.current = '';
+      loadData();
+    } catch (error) {
+      console.error('유통기한 추가 실패:', error);
+      alert('유통기한 추가 중 오류가 발생했습니다.');
+    }
   };
 
   return (
-    <div className="p-4 h-full">
+    <div className="p-4 h-full flex flex-col">
       <h1 className="text-xl font-bold mb-4">상품 관리</h1>
 
-      <div className="mb-4 relative">
+      <div className="mb-4">
         <SearchBar
           value={searchText}
           onChange={setSearchText}
           placeholder="상품명 또는 상품코드 검색"
-          isLoading={isLoading}
+          isLoading={isLoading && page === 0} // 첫 페이지 로딩 시에만 로딩 표시
         />
       </div>
 
@@ -153,37 +210,51 @@ const Manage: React.FC = () => {
         </button>
       </div>
 
-      <div className="space-y-3 mb-10">
-        {currentItems.length > 0 ? (
-          currentItems.map((product) => (
-            <ProductListItem
-              key={product.id}
-              product={product}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))
+      {/* 상품 목록 - 스크롤 이벤트 추가 */}
+      <div
+        className="flex-grow overflow-y-auto bg-gray-50 rounded-lg mb-4 h-[calc(100vh-200px)]"
+        onScroll={handleScroll}
+      >
+        {products.length === 0 && !isLoading ? (
+          <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+            <p>{searchText ? '검색 결과가 없습니다.' : '등록된 상품이 없습니다.'}</p>
+          </div>
         ) : (
-          <div className="text-center py-10 text-gray-500">
-            {searchText ? '검색 결과가 없습니다.' : '등록된 상품이 없습니다.'}
+          <div className="space-y-3 p-3">
+            {products.map((product) => (
+              <ProductListItem
+                key={product.id}
+                product={product}
+                onEdit={() => handleEdit(product)}
+                onAddExp={() => handleAddExp(product)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* 로딩 스피너는 하단에 표시 */}
+        {isLoading && (
+          <div className="py-4">
+            <LoadingSpinner />
           </div>
         )}
       </div>
 
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      )}
-
       {/* 상품 편집/추가 모달 */}
       <EditProductModal
-        isOpen={isModalOpen}
+        isOpen={isEditModalOpen}
         product={selectedProduct}
-        onClose={handleCloseModal}
+        onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveProduct}
+        onDelete={handleDelete}
+      />
+
+      {/* 유통기한 추가 모달 */}
+      <AddExpModal
+        isOpen={isAddExpModalOpen}
+        product={selectedProduct}
+        onClose={() => setIsAddExpModalOpen(false)}
+        onSave={handleSaveExpiration}
       />
     </div>
   );
