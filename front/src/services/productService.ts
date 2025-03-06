@@ -66,22 +66,6 @@ export const toggleProductStatus = async (id: number, activeTab: string): Promis
   }
 };
 
-// 상품 검색 (유사도 기반)
-// export const searchProducts = async (query: string): Promise<Product[]> => {
-//   try {
-//     const response = await fetch(
-//       `${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`,
-//     );
-//     if (!response.ok) {
-//       throw new Error(`검색 실패: ${response.status}`);
-//     }
-//     return await response.json();
-//   } catch (error) {
-//     console.error('검색 중 오류 발생:', error);
-//     throw error;
-//   }
-// };
-
 export const fetchProductsPage = async (page: number = 0, size: number = 10) => {
   try {
     const response = await fetch(`${API_BASE_URL}/products?page=${page}&size=${size}`);

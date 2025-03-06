@@ -4,4 +4,5 @@ export interface Product {
   code?: string;
   stock?: number;
   standard?: number;
+  price: number;
 }

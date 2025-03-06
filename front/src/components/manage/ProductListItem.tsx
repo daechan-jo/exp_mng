@@ -16,10 +16,13 @@ const ProductListItem: React.FC<ProductListItemProps> = ({ product, onEdit, onAd
           <h3 className="font-medium text-gray-900">{product.name}</h3>
 
           {/* 상품 코드 */}
-          <div className="mt-1 text-sm text-gray-600">상품코드: {product.code}</div>
+          <div className="mt-1 text-sm text-gray-600">상품코드: {product.code || 'null'}</div>
 
-          {/* 규격 */}
-          <div className="mt-1 text-sm text-gray-600">규격: {product.standard || '없음'}</div>
+          {/* 규격과 가격 */}
+          <div className="mt-1 text-sm text-gray-600 flex space-x-4">
+            <span>규격: {product.standard || 'null'}</span>
+            <span>가격: {product.price ? `${product.price.toLocaleString()}원` : 'null'}</span>
+          </div>
         </div>
 
         <div className="flex space-x-2">

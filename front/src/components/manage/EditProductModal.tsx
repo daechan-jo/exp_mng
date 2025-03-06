@@ -26,6 +26,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         name: product.name,
         code: product.code,
         standard: product.standard,
+        price: product.price,
       });
       setErrors({});
     }
@@ -116,7 +117,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
               type="text"
               id="code"
               name="code"
-              value={formData.code || ''}
+              value={formData.code || 'null'}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded-md ${
                 errors.code ? 'border-red-500' : 'border-gray-300'
@@ -133,10 +134,27 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
               type="text"
               id="standard"
               name="standard"
-              value={formData.standard || ''}
+              value={formData.standard || 'null'}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
+              가격 *
+            </label>
+            <input
+              type="text"
+              id="price"
+              name="price"
+              value={formData.price || 0}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 border rounded-md ${
+                errors.code ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.code && <p className="text-red-500 text-xs mt-1">{errors.code}</p>}
           </div>
 
           <div className="flex justify-between mt-6">

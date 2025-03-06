@@ -13,7 +13,6 @@ export const useExpiringProducts = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('pending');
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [todayPendingCount, setTodayPendingCount] = useState(0);
   const [todayCompletedCount, setTodayCompletedCount] = useState(0);
@@ -53,8 +52,6 @@ export const useExpiringProducts = () => {
       } else {
         setProducts((prevProducts) => [...prevProducts, ...data.content]);
       }
-
-      setTotalPages(data.totalPages);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {

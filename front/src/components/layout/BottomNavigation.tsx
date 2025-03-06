@@ -37,7 +37,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentPage, onPage
           className={`flex flex-col items-center ${currentPage === 'manage' ? 'text-blue-500' : 'text-gray-500'}`}
         >
           <Settings size={24} className="sm:w-6 sm:h-6" />
-          <span className="text-xs mt-1 sm:text-sm">관리</span>
+          <span className="text-xs mt-1 sm:text-sm">상품관리</span>
         </button>
       </div>
     </nav>
