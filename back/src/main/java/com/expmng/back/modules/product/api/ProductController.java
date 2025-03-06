@@ -2,6 +2,7 @@ package com.expmng.back.modules.product.api;
 
 import com.expmng.back.modules.product.core.ProductService;
 import com.expmng.back.modules.product.dto.ProductDto;
+import com.expmng.back.modules.product.dto.StatusDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,7 +19,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 import jakarta.validation.Valid;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -91,7 +94,7 @@ public class ProductController {
 		return ResponseEntity.noContent().build();
 	}
 
-	@Operation(summary = "유통기한 조회", description = "유통기한 임박기간 내림차순으로 조회합니다.")
+	@Operation(summary = "유통기한 오름차순 조회", description = "유통기한 임박기간 오름차순으로 조회합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "조회 성공"),
 	})
@@ -99,9 +102,20 @@ public class ProductController {
 	public ResponseEntity<Page<ProductDto.ExpProductResponse>> getExpiringProducts(
 		@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "10") int size,
-		@RequestParam(defaultValue = "deadline") String sort) {
+		@RequestParam(defaultValue = "deadline") String sort,
+		@RequestParam(defaultValue = "false") boolean status) {
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
-		return ResponseEntity.ok(productService.getExpiringProducts(pageable));
+		return ResponseEntity.ok(productService.getExpiringProducts(pageable, status));
+	}
+
+	@Operation(summary = "오늘 유통기한 카운트 조회", description = "금일 유통기한 만료 제품 카운트 조회")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "조회 성공"),
+	})
+	@GetMapping("/expiring/count")
+	public ResponseEntity<StatusDto.Count> getExpiringTodayCount() {
+		StatusDto.Count count = productService.getExpiringTodayCount();
+		return ResponseEntity.ok(count);
 	}
 }

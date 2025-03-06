@@ -1,17 +1,21 @@
 package com.expmng.back.modules.product.core;
 
 import com.expmng.back.modules.product.dto.ProductDto;
+import com.expmng.back.modules.product.dto.StatusDto;
 import com.expmng.back.modules.product.infrastructure.entity.Exp;
 import com.expmng.back.modules.product.infrastructure.entity.Product;
 import com.expmng.back.modules.product.infrastructure.repository.ExpRepository;
 import com.expmng.back.modules.product.infrastructure.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -82,8 +86,13 @@ public class ProductService {
 	 * @return 유통기한 임박 상품 목록
 	 */
 	@Transactional()
-	public Page<ProductDto.ExpProductResponse> getExpiringProducts(Pageable pageable) {
-		Page<Exp> expiringExps = expRepository.findByStatusFalseOrderByDeadlineAsc(pageable);
+	public Page<ProductDto.ExpProductResponse> getExpiringProducts(Pageable pageable, boolean status) {
+		Page<Exp> expiringExps;
+		if (status) {
+			expiringExps = expRepository.findByStatusTrueOrderByDeadlineDesc(pageable);
+		} else {
+			expiringExps = expRepository.findByStatusFalseOrderByDeadlineAsc(pageable);
+		}
 
 		return expiringExps.map(exp -> {
 			Product product = exp.getProduct();
@@ -98,5 +107,19 @@ public class ProductService {
 				.status(exp.getStatus())
 				.build();
 		});
+	}
+
+	/**
+	 * 금일 유통기한 만료 상품 카운트 조회
+	 *
+	 * @return Number
+	 */
+	@Transactional(readOnly = true)  // 읽기 전용 트랜잭션으로 성능 최적화
+	public StatusDto.Count getExpiringTodayCount() {
+		LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+		LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59, 999999999);
+		Long falseCount = expRepository.countByDeadlineBetweenAndStatusFalse(startOfDay, endOfDay);
+		Long trueCount = expRepository.countByDeadlineBetweenAndStatusTrue(startOfDay, endOfDay);
+		return new StatusDto.Count(falseCount, trueCount);
 	}
 }
