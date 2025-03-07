@@ -9,6 +9,23 @@ const MobileContainer: React.FC<MobileContainerProps> = ({ children }) => {
   const [deviceHeight, setDeviceHeight] = useState('667px');
 
   useEffect(() => {
+    // iOS Safari의 뷰포트 높이 문제 해결을 위한 함수
+    const setVhProperty = () => {
+      // 실제 내부 높이를 CSS 변수로 설정
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    // 초기 실행 및 이벤트 리스너 등록
+    setVhProperty();
+    window.addEventListener('resize', setVhProperty);
+
+    return () => {
+      window.removeEventListener('resize', setVhProperty);
+    };
+  }, []);
+
+  useEffect(() => {
     // 화면 너비에 따라 적절한 높이 설정
     const updateDeviceHeight = () => {
       const width = window.innerWidth;
