@@ -18,7 +18,8 @@ export const formatDate = (dateString: string | Date): string => {
   const hour12 = hours % 12 || 12; // 12시간제로 변환
   const minutes = date.getMinutes().toString().padStart(2, '0');
 
-  return `${year}/${month}/${day} ${ampm} ${hour12}:${minutes}`;
+  // return `${year}/${month}/${day} ${ampm} ${hour12}:${minutes}`;
+  return `${year}.${month}.${day} - ${hours}:${minutes}`;
 };
 
 /**
@@ -41,12 +42,12 @@ export const getTimeRemaining = (deadline: string | Date): string | null => {
   // 24시간 이상이면 일 단위로 표시
   if (diffHours >= 24) {
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}일 남음`;
+    return `${diffDays}일`;
   }
 
   // 24시간 미만이면 시간:분 단위로 표시
   const diffMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
-  return `${diffHours}시간 ${diffMinutes}분 남음`;
+  return `${diffHours}시간 ${diffMinutes}분`;
 };
 
 /**
