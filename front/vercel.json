@@ -3,6 +3,16 @@
 		{
 			"source": "/api/:path*",
 			"destination": "http://58.236.96.102:8888/api/:path*"
+		},
+		{
+			"source": "/:path*",
+			"has": [
+				{
+					"type": "host",
+					"value": "exp-mng.vercel.app"
+				}
+			],
+			"destination": "http://58.236.96.102:8888/:path*"
 		}
 	]
 }
