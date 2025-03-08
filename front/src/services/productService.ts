@@ -1,7 +1,7 @@
 import { ExpProduct } from '../models/ExpProduct';
 import { Product } from '../models/Product.ts';
 
-const API_BASE_URL = 'http://58.236.96.102:8888/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type ProductResponse = {
   content: ExpProduct[];
