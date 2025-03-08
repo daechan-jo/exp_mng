@@ -1,8 +1,7 @@
 import { ExpProduct } from '../models/ExpProduct';
 import { Product } from '../models/Product.ts';
 
-// const API_BASE_URL = 'http://localhost:8080/api';
-const API_BASE_URL = 'https://young-regions-shine.loca.lt/api';
+const API_BASE_URL = 'http://58.236.96.102:8888/api';
 
 type ProductResponse = {
   content: ExpProduct[];
